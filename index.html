@@ -12,19 +12,47 @@
     --success:#2F7D5B; --success-bg:#E7F2EC; --warning:#B4790A; --warning-bg:#FBF0DD; --danger:#B23B3B; --danger-bg:#FAEAEA;
     --p2:#2F7D5B; --p2bg:#E7F2EC; --p3:#6B4FA0; --p3bg:#F0EAFA; --p4:#C2703D; --p4bg:#FBEFE3;
     --p5:#AD4368; --p5bg:#FAEAF0; --p6:#22798A; --p6bg:#E4F1F3;
+    /* Relleno horizontal/vertical de página: se reduce en pantallas angostas (celular) para que el
+       contenido use el ancho disponible en lugar de dejarlo comprimido entre márgenes fijos de 40px. */
+    --pgx:40px; --pgy:48px;
   }
   * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); font-family:'IBM Plex Sans', sans-serif; color:var(--ink); }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--bg); font-family:'IBM Plex Sans', sans-serif; color:var(--ink); overflow-x:hidden; }
   h1,h2,h3 { font-family:'Fraunces', serif; margin:0; }
   a { color:inherit; text-decoration:none; }
   button { font-family:'IBM Plex Sans', sans-serif; cursor:pointer; border:none; background:none; }
   label { font-family:'IBM Plex Sans', sans-serif; }
-  select, input, textarea { font-family:'IBM Plex Sans', sans-serif; }
+  select, input, textarea { font-family:'IBM Plex Sans', sans-serif; font-size:16px; }
   .card { background:var(--surface); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
   .stepicon { font-size:18px; width:34px; height:34px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 0 0 1px rgba(0,0,0,0.06); }
   table { border-collapse:collapse; width:100%; }
   th { text-align:left; font-size:12px; color:var(--muted); font-weight:600; padding:0 12px 10px 12px; position:sticky; top:0; background:var(--surface); }
   td { padding:11px 12px; font-size:13px; border-top:1px solid var(--border); }
+
+  /* Cuadrículas reutilizadas en Resumen, Main y Control — el número de columnas
+     se reduce en pantallas angostas para que cada celda quede legible en un celular. */
+  .grid-4 { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:16px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:16px; }
+  .grid-6 { display:grid; grid-template-columns:repeat(6, 1fr); gap:12px; }
+  .grid-side { display:grid; grid-template-columns:320px 1fr; gap:20px; align-items:stretch; }
+
+  @media (max-width:900px) {
+    .grid-side { grid-template-columns:1fr; }
+  }
+  @media (max-width:760px) {
+    :root { --pgx:20px; --pgy:28px; }
+    .grid-4 { grid-template-columns:repeat(2, minmax(0,1fr)); }
+    .grid-3 { grid-template-columns:repeat(2, minmax(0,1fr)); }
+    .grid-6 { grid-template-columns:repeat(3, minmax(0,1fr)); }
+  }
+  @media (max-width:480px) {
+    :root { --pgx:16px; --pgy:20px; }
+    .grid-4 { grid-template-columns:1fr; }
+    .grid-3 { grid-template-columns:1fr; }
+    .grid-6 { grid-template-columns:repeat(2, minmax(0,1fr)); }
+    h2 { font-size:22px !important; }
+  }
 </style>
 
 </head>
@@ -896,7 +924,7 @@ function renderResumen() {
   return `
 <div style="width:100%; min-height:100vh; box-sizing:border-box; display:flex; flex-direction:column;">
 
-  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:24px; padding:28px 40px; background:var(--primary); color:#fff; flex-wrap:wrap;">
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:24px; padding:28px var(--pgx); background:var(--primary); color:#fff; flex-wrap:wrap;">
     <div style="max-width:640px;">
       <span style="display:inline-block; padding:4px 12px; background:rgba(255,255,255,0.14); border-radius:20px; font-size:11px; font-weight:600; letter-spacing:0.04em; margin-bottom:12px;">CIRCULAR EXTERNA 18 DE 2026 · MINCIT</span>
       <h1 style="font-size:32px; color:#fff; line-height:1.15;">Aportes y programas para las Cámaras de Comercio en 2027</h1>
@@ -915,10 +943,10 @@ function renderResumen() {
     </div>
   </div>
 
-  <div style="flex:1; padding:40px; display:flex; justify-content:center;">
+  <div style="flex:1; padding:var(--pgy) var(--pgx); display:flex; justify-content:center;">
     <div style="width:100%; max-width:1200px; display:flex; flex-direction:column; gap:32px;">
 
-      <div style="display:grid; grid-template-columns:320px 1fr; gap:20px; align-items:stretch;">
+      <div class="grid-side">
         <div class="card" style="padding:20px;">
           <div style="font-size:13px; font-weight:700; color:var(--primary); margin-bottom:12px;">APORTE DE LAS CÁMARAS DE COMERCIO</div>
           <table style="width:100%; border-collapse:collapse; font-size:12px;">
@@ -949,7 +977,7 @@ function renderResumen() {
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;">
+      <div class="grid-3">
 
         <div class="card">
           <div style="background:var(--primary); color:#fff; padding:14px 16px; display:flex; align-items:center; gap:10px;">
@@ -1036,7 +1064,7 @@ function renderResumen() {
       <div class="card" style="padding:22px 28px;">
         <div style="font-size:11px; font-weight:700; color:var(--primary); letter-spacing:0.03em; margin-bottom:4px;">CAPÍTULO IV — COMPONENTES TRANSVERSALES A LOS PROGRAMAS</div>
         <div style="font-size:12px; color:var(--muted); margin-bottom:16px; max-width:760px;">Aplican a los programas del Capítulo II y a la línea del Capítulo III. El componente 1 es obligatorio para toda cámara, sin importar qué programas elija; los otros 5 son transversales cuando resulte pertinente.</div>
-        <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:12px;">
+        <div class="grid-6">
           <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;">
             <div style="width:44px; height:44px; border-radius:50%; background:var(--danger-bg); display:flex; align-items:center; justify-content:center; font-size:20px;">📋</div>
             <div style="font-size:11.5px; line-height:1.35;">Simplificación de Trámites</div>
@@ -1103,7 +1131,7 @@ function renderResumen() {
 
 function renderMainHeader(vm) {
   return `
-  <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 40px; background:var(--primary); color:#fff;">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:20px var(--pgx); background:var(--primary); color:#fff;">
     <div style="display:flex; align-items:baseline; gap:12px;">
       <h1 style="font-size:20px; color:#fff;">Sistema Ruta Milagro</h1>
       <span style="font-size:13px; color:#C9D6E4;">Reporte de gestión · Circular 18/2026</span>
@@ -1111,7 +1139,7 @@ function renderMainHeader(vm) {
     <div style="font-size:13px; color:#C9D6E4;">${esc(vm.camaraHeaderText)}</div>
   </div>
 
-  <div style="display:flex; gap:4px; padding:0 40px; background:var(--primary-dark); overflow-x:auto;">
+  <div style="display:flex; gap:4px; padding:0 var(--pgx); background:var(--primary-dark); overflow-x:auto;">
     <button onclick="H(${reg(vm.goTo1)})" style="${vm.tab1Style}">1. Perfil y aporte</button>
     <button onclick="H(${reg(vm.goTo2)})" style="${vm.tab2Style}">2. Programas</button>
     <button onclick="H(${reg(vm.goTo3)})" style="${vm.tab3Style}">3. Destinación</button>
@@ -1126,7 +1154,7 @@ function renderMainHeader(vm) {
 
 function renderScreen1(vm) {
   return `
-  <div style="flex:1; padding:48px 40px; display:flex; justify-content:center;">
+  <div style="flex:1; padding:var(--pgy) var(--pgx); display:flex; justify-content:center;">
     <div style="width:100%; max-width:900px; display:flex; flex-direction:column; gap:28px;">
 
       <div>
@@ -1250,7 +1278,7 @@ function renderProgramCard(p, introText) {
 
 function renderScreen2(vm) {
   return `
-  <div style="flex:1; padding:48px 40px; display:flex; justify-content:center;">
+  <div style="flex:1; padding:var(--pgy) var(--pgx); display:flex; justify-content:center;">
     <div style="width:100%; max-width:900px; display:flex; flex-direction:column; gap:24px;">
 
       <div>
@@ -1305,7 +1333,7 @@ function renderScreen2(vm) {
 
 function renderScreen3(vm) {
   return `
-  <div style="flex:1; padding:48px 40px; display:flex; justify-content:center;">
+  <div style="flex:1; padding:var(--pgy) var(--pgx); display:flex; justify-content:center;">
     <div style="width:100%; max-width:900px; display:flex; flex-direction:column; gap:24px;">
 
       <div>
@@ -1491,7 +1519,7 @@ function renderExecTool(p) {
 
 function renderScreen4(vm) {
   return `
-  <div style="flex:1; padding:48px 40px; display:flex; justify-content:center;">
+  <div style="flex:1; padding:var(--pgy) var(--pgx); display:flex; justify-content:center;">
     <div style="width:100%; max-width:960px; display:flex; flex-direction:column; gap:24px;">
 
       <div>
@@ -1578,7 +1606,7 @@ function renderScreen4(vm) {
 
 function renderScreen5(vm) {
   return `
-  <div style="flex:1; padding:48px 40px; display:flex; justify-content:center;">
+  <div style="flex:1; padding:var(--pgy) var(--pgx); display:flex; justify-content:center;">
     <div style="width:100%; max-width:760px; display:flex; flex-direction:column; gap:24px;">
 
       <div>
@@ -1592,7 +1620,7 @@ function renderScreen5(vm) {
         ${vm.reporteNoGuardado ? `<button onclick="H(${reg(vm.guardarReporte)})" style="padding:11px 20px; background:var(--primary); color:#fff; border-radius:4px; font-size:14px; font-weight:600;">Guardar reporte</button>` : ''}
       </div>
 
-      <div style="background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:36px; display:flex; flex-direction:column; gap:28px; ${vm.reportOpacityStyle}">
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:var(--pgy) var(--pgx); display:flex; flex-direction:column; gap:28px; ${vm.reportOpacityStyle}">
 
         <div style="display:flex; align-items:center; justify-content:space-between;">
           <div>
@@ -1628,7 +1656,8 @@ function renderScreen5(vm) {
             <div style="font-size:12px; color:var(--muted); font-weight:600;">EJECUCIÓN DEL APORTE POR PROGRAMA</div>
             <div style="font-size:12px; color:var(--muted);">Comprometido: <strong style="color:var(--ink);">${vm.totalComprometidoFormatted}</strong> · Ejecutado: <strong style="color:var(--ink);">${vm.totalEjecutadoFormatted}</strong> (${vm.totalPctEjecText})</div>
           </div>
-          <table>
+          <div style="overflow-x:auto;">
+          <table style="min-width:520px;">
             <thead>
               <tr>
                 <th style="text-align:left; font-size:12px; color:var(--muted); font-weight:600; padding:0 0 8px 0;">Programa</th>
@@ -1648,6 +1677,7 @@ function renderScreen5(vm) {
               `).join('')}
             </tbody>
           </table>
+          </div>
         </div>
 
         <div style="display:flex; align-items:center; justify-content:flex-end; padding-top:16px; border-top:1px solid var(--border);">
@@ -1681,7 +1711,7 @@ function renderScreen5(vm) {
 
 function renderScreen6(vm) {
   return `
-  <div style="flex:1; padding:48px 40px; display:flex; justify-content:center;">
+  <div style="flex:1; padding:var(--pgy) var(--pgx); display:flex; justify-content:center;">
     <div style="width:100%; max-width:1040px; display:flex; flex-direction:column; gap:32px;">
 
       <div>
@@ -1698,7 +1728,7 @@ function renderScreen6(vm) {
         <div style="font-size:13px; color:var(--muted);">${esc(vm.anoEjecDetail)}</div>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:16px;">
+      <div class="grid-3">
         ${vm.deadlines.map(d => `
           <div style="background:var(--surface); border:1px solid var(--border); border-left:4px solid ${d.color}; border-radius:4px; padding:20px;">
             <div style="font-size:12px; color:var(--muted); font-weight:600;">${esc(d.label)}</div>
@@ -1713,7 +1743,7 @@ function renderScreen6(vm) {
         <div style="background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:24px; display:flex; flex-direction:column; gap:18px;">
           ${vm.hasEjecItems ? vm.ejecItems.map(cap => `
             <div>
-              <div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px; gap:12px;">
+              <div style="display:flex; justify-content:space-between; flex-wrap:wrap; font-size:14px; margin-bottom:6px; gap:4px 12px;">
                 <span>${esc(cap.name)}</span>
                 <span style="color:var(--muted); white-space:nowrap;">${cap.pctEjecText} ejecutado · ${cap.comprometidoDisplay} comprometido</span>
               </div>
@@ -1771,7 +1801,7 @@ function renderControl(vm) {
   return `
 <div style="width:100%; min-height:100vh; box-sizing:border-box; display:flex; flex-direction:column;">
 
-  <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 40px; background:var(--primary-dark); color:#fff;">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:20px var(--pgx); background:var(--primary-dark); color:#fff;">
     <div style="display:flex; align-items:baseline; gap:12px;">
       <h1 style="font-size:20px; color:#fff;">Sistema Ruta Milagro</h1>
       <span style="font-size:13px; color:#F4C89A;">🔒 Panel de control · Confecámaras</span>
@@ -1779,7 +1809,7 @@ function renderControl(vm) {
     <div style="font-size:13px; color:#9FB2C6;">Administrador nacional</div>
   </div>
 
-  <div style="display:flex; gap:4px; padding:0 40px; background:var(--primary-dark); border-top:1px solid #2A4A6B; overflow-x:auto;">
+  <div style="display:flex; gap:4px; padding:0 var(--pgx); background:var(--primary-dark); border-top:1px solid #2A4A6B; overflow-x:auto;">
     <button onclick="goToMainScreen(1); return false;" style="${tabStyle(false)}">1. Perfil y aporte</button>
     <button onclick="goToMainScreen(2); return false;" style="${tabStyle(false)}">2. Programas</button>
     <button onclick="goToMainScreen(3); return false;" style="${tabStyle(false)}">3. Destinación</button>
@@ -1790,7 +1820,7 @@ function renderControl(vm) {
     <a href="#" style="margin-left:auto; padding:14px 18px; font-size:13px; white-space:nowrap; color:#fff; border-left:1px solid #2A4A6B; border-bottom:3px solid var(--accent);">🔒 Panel Confecámaras</a>
   </div>
 
-  <div style="flex:1; padding:48px 40px; display:flex; justify-content:center;">
+  <div style="flex:1; padding:var(--pgy) var(--pgx); display:flex; justify-content:center;">
     <div style="width:100%; max-width:1160px; display:flex; flex-direction:column; gap:28px;">
 
       <div>
@@ -1798,7 +1828,7 @@ function renderControl(vm) {
         <p style="color:var(--muted); font-size:14px; margin-top:8px; max-width:720px;">Vista agregada de lo que cada cámara reportó (o no) sobre programas, aporte y ejecución. Los datos de esta tabla son de ejemplo — se conectan con lo que cada cámara diligencia en su propia sesión.</p>
       </div>
 
-      <div style="display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:16px;">
+      <div class="grid-4">
         <div style="background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:20px;">
           <div style="font-size:12px; color:var(--muted); font-weight:600;">YA REPORTARON</div>
           <div style="font-size:26px; font-weight:600; margin-top:6px;">${vm.reportedCount} de ${vm.totalChambers}</div>
@@ -1823,7 +1853,7 @@ function renderControl(vm) {
         <div style="background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:20px; display:flex; flex-direction:column; gap:16px;">
           ${vm.programStats.map(s => `
             <div>
-              <div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:6px; gap:12px;">
+              <div style="display:flex; justify-content:space-between; flex-wrap:wrap; font-size:14px; margin-bottom:6px; gap:4px 12px;">
                 <span style="font-weight:600;">${esc(s.name)}</span>
                 <span style="color:var(--muted); white-space:nowrap;">${s.count} cámaras · ${s.avgText} de avance promedio</span>
               </div>
@@ -1840,8 +1870,8 @@ function renderControl(vm) {
         ${vm.filters.map(f => `<button onclick="H(${reg(f.select)})" style="${f.style}">${esc(f.label)}</button>`).join('')}
       </div>
 
-      <div style="background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:8px 20px; max-height:640px; overflow-y:auto;">
-        <table>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:8px 20px; max-height:640px; overflow-y:auto; overflow-x:auto;">
+        <table style="min-width:640px;">
           <thead>
             <tr>
               <th>Cámara</th>
