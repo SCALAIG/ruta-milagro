@@ -279,9 +279,22 @@ function update(patch) {
   render();
 }
 
+// El estado maneja todo el árbol de pantallas como texto (innerHTML completo en
+// cada render), así que cálculos derivados (aporte, totales, acumulados) quedan
+// automáticos apenas cambia el estado — sin depender de que el usuario haga clic
+// en otro campo para "confirmar" el valor. El costo de repintar todo en cada
+// tecla es que el navegador reemplaza el nodo <input> por uno nuevo, perdiendo
+// el foco y el cursor; por eso render() guarda qué campo tenía el foco (y la
+// posición del cursor) antes de repintar, y se lo devuelve al terminar.
 function render() {
-  handlers = [];
   const app = document.getElementById('app');
+  const active = document.activeElement;
+  let focusInfo = null;
+  if (active && app.contains(active) && active.id) {
+    focusInfo = { id: active.id, start: active.selectionStart, end: active.selectionEnd };
+  }
+
+  handlers = [];
   if (state.view === 'resumen') {
     app.innerHTML = renderResumen();
   } else if (state.view === 'control') {
@@ -289,12 +302,23 @@ function render() {
   } else {
     app.innerHTML = renderMain(computeMainVM(state));
   }
+
+  if (focusInfo) {
+    const el = document.getElementById(focusInfo.id);
+    if (el) {
+      el.focus();
+      if (typeof el.setSelectionRange === 'function' && focusInfo.start != null) {
+        try { el.setSelectionRange(focusInfo.start, focusInfo.end); } catch (e) { /* algunos inputs (number) no soportan setSelectionRange */ }
+      }
+    }
+  }
 }
 
 function goToResumen() { window.scrollTo(0, 0); update({ view: 'resumen' }); }
 function enterSystem() { window.scrollTo(0, 0); update({ view: 'main', screen: 1 }); }
 function goToControl() { window.scrollTo(0, 0); update({ view: 'control' }); }
 function goToMainFromControl() { window.scrollTo(0, 0); update({ view: 'main' }); }
+function goToMainScreen(n) { window.scrollTo(0, 0); update({ view: 'main', screen: n }); }
 
 document.addEventListener('DOMContentLoaded', render);
 
@@ -1094,6 +1118,7 @@ function renderMainHeader(vm) {
     <button onclick="H(${reg(vm.goTo4)})" style="${vm.tab4Style}">4. Ejecución</button>
     <button onclick="H(${reg(vm.goTo5)})" style="${vm.tab5Style}">5. Reporte</button>
     <button onclick="H(${reg(vm.goTo6)})" style="${vm.tab6Style}">6. Panel</button>
+    <a href="#" onclick="goToResumen(); return false;" style="padding:14px 18px; font-size:13px; white-space:nowrap; color:#9FB2C6; border-left:1px solid #2A4A6B; border-bottom:3px solid transparent;">📄 Resumen de la Circular</a>
     <a href="#" onclick="goToControl(); return false;" style="margin-left:auto; padding:14px 18px; font-size:13px; white-space:nowrap; color:#F4C89A; border-left:1px solid #2A4A6B; border-bottom:3px solid transparent;">🔒 Panel Confecámaras</a>
   </div>
 `;
@@ -1137,7 +1162,7 @@ function renderScreen1(vm) {
         <div style="display:flex; gap:32px; flex-wrap:wrap;">
           <div style="flex:1; min-width:260px;">
             <label for="ingresos-input" style="font-size:13px; font-weight:600; color:var(--muted); display:block; margin-bottom:8px;">Ingresos 2025 por servicios públicos delegados</label>
-            <input id="ingresos-input" value="${esc(vm.ingresosDisplay)}" onchange="H(${reg(vm.onIngresosChange)},event)" inputmode="numeric" placeholder="Mismo valor reportado a la Superintendencia de Sociedades" style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid var(--border); border-radius:4px; font-size:15px;">
+            <input id="ingresos-input" value="${esc(vm.ingresosDisplay)}" oninput="H(${reg(vm.onIngresosChange)},event)" inputmode="numeric" placeholder="Mismo valor reportado a la Superintendencia de Sociedades" style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid var(--border); border-radius:4px; font-size:15px;">
           </div>
           <div style="flex:1; min-width:260px;">
             <div style="font-size:13px; font-weight:600; color:var(--muted); margin-bottom:8px;">Valor del aporte (${vm.pct}%)</div>
@@ -1320,7 +1345,7 @@ function renderScreen3(vm) {
                 <div style="min-width:220px; font-size:14px;">${esc(r.label)}</div>
                 <div style="display:flex; align-items:center; gap:10px;">
                   <label style="font-size:13px; color:var(--muted);">Monto asignado</label>
-                  <input value="${esc(r.amountDisplay)}" onchange="H(${reg(r.onChange)},event)" style="width:180px; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:4px; font-size:14px; text-align:right; color:${r.amountColor};">
+                  <input id="${r.inputId}" value="${esc(r.amountDisplay)}" oninput="H(${reg(r.onChange)},event)" style="width:180px; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:4px; font-size:14px; text-align:right; color:${r.amountColor};">
                 </div>
               </div>
             `).join('')}
@@ -1380,12 +1405,12 @@ function renderExecReport(r) {
           <div style="display:flex; gap:20px; flex-wrap:wrap;">
             <div style="flex:1; min-width:180px;">
               <label style="font-size:12px; font-weight:600; color:var(--muted); display:block; margin-bottom:6px;">EJECUTADO EN ESTE TRIMESTRE</label>
-              <input value="${esc(r.ejecutadoTrimDisplay)}" onchange="H(${reg(r.onEjecutadoTrim)},event)" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:4px; font-size:14px; text-align:right; background:#fff;">
+              <input id="ejecutado-${r.id}" value="${esc(r.ejecutadoTrimDisplay)}" oninput="H(${reg(r.onEjecutadoTrim)},event)" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:4px; font-size:14px; text-align:right; background:#fff;">
             </div>
             <div style="width:110px;">
               <label style="font-size:12px; font-weight:600; color:var(--muted); display:block; margin-bottom:6px;">AVANCE TÉCNICO</label>
               <div style="display:flex; align-items:center; gap:4px;">
-                <input type="number" min="0" max="100" value="${r.avanceTrim}" onchange="H(${reg(r.onAvanceTrim)},event)" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:4px; font-size:14px; text-align:right; background:#fff;">
+                <input id="avance-${r.id}" type="number" min="0" max="100" value="${r.avanceTrim}" oninput="H(${reg(r.onAvanceTrim)},event)" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:4px; font-size:14px; text-align:right; background:#fff;">
                 <span style="font-size:13px; color:var(--muted);">%</span>
               </div>
             </div>
@@ -1445,7 +1470,7 @@ function renderExecTool(p) {
       <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-end;">
         <div style="flex:1; min-width:200px;">
           <label style="font-size:12px; font-weight:600; color:var(--muted); display:block; margin-bottom:6px;">MONTO COMPROMETIDO</label>
-          <input value="${esc(p.comprometidoDisplay)}" onchange="H(${reg(p.onComprometido)},event)" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:4px; font-size:14px; text-align:right; background:#fff;">
+          <input id="comprometido-${p.id}" value="${esc(p.comprometidoDisplay)}" oninput="H(${reg(p.onComprometido)},event)" style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--border); border-radius:4px; font-size:14px; text-align:right; background:#fff;">
         </div>
         <div style="flex:1; min-width:200px;">
           <div style="font-size:12px; font-weight:600; color:var(--muted); margin-bottom:6px;">EJECUTADO ACUMULADO (4 TRIMESTRES)</div>
@@ -1755,7 +1780,13 @@ function renderControl(vm) {
   </div>
 
   <div style="display:flex; gap:4px; padding:0 40px; background:var(--primary-dark); border-top:1px solid #2A4A6B; overflow-x:auto;">
-    <a href="#" onclick="goToMainFromControl(); return false;" style="padding:14px 18px; font-size:13px; white-space:nowrap; color:#9FB2C6; border-bottom:3px solid transparent;">Vista de una cámara (Perfil, Programas, Destinación, Ejecución, Reporte) →</a>
+    <button onclick="goToMainScreen(1); return false;" style="${tabStyle(false)}">1. Perfil y aporte</button>
+    <button onclick="goToMainScreen(2); return false;" style="${tabStyle(false)}">2. Programas</button>
+    <button onclick="goToMainScreen(3); return false;" style="${tabStyle(false)}">3. Destinación</button>
+    <button onclick="goToMainScreen(4); return false;" style="${tabStyle(false)}">4. Ejecución</button>
+    <button onclick="goToMainScreen(5); return false;" style="${tabStyle(false)}">5. Reporte</button>
+    <button onclick="goToMainScreen(6); return false;" style="${tabStyle(false)}">6. Panel</button>
+    <a href="#" onclick="goToResumen(); return false;" style="padding:14px 18px; font-size:13px; white-space:nowrap; color:#9FB2C6; border-left:1px solid #2A4A6B; border-bottom:3px solid transparent;">📄 Resumen de la Circular</a>
     <a href="#" style="margin-left:auto; padding:14px 18px; font-size:13px; white-space:nowrap; color:#fff; border-left:1px solid #2A4A6B; border-bottom:3px solid var(--accent);">🔒 Panel Confecámaras</a>
   </div>
 
