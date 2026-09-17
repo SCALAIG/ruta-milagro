@@ -1,0 +1,819 @@
+<title>Diagnóstico Ruta Milagro</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#F6F5F0; --surface:#FFFFFF; --surface-2:#EEEBE1; --surface-3:#E4E0D2;
+    --ink:#16231F; --ink-muted:#5A685F; --ink-faint:#8B9690;
+    --accent:#0F5C4E; --accent-ink:#FFFFFF; --accent-soft:#DCEAE4;
+    --gold:#A8791F; --gold-soft:#F2E6C8;
+    --line:#DCD6C6; --line-strong:#C7BFA9;
+    --good:#2E7D4F; --good-soft:#E1EFE3;
+    --warn:#A8791F; --warn-soft:#F2E6C8;
+    --bad:#A5382C; --bad-soft:#F3E1DD;
+    --route-a:#A5382C; --route-a-soft:#F3E1DD;
+    --route-b:#A8791F; --route-b-soft:#F2E6C8;
+    --route-c:#0F5C4E; --route-c-soft:#DCEAE4;
+    --shadow: 0 1px 2px rgba(22,35,31,.06), 0 6px 20px -8px rgba(22,35,31,.16);
+    font-size: 16px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0D1512; --surface:#141F1A; --surface-2:#1B2822; --surface-3:#25342C;
+      --ink:#ECEAE1; --ink-muted:#AAB5AC; --ink-faint:#78857C;
+      --accent:#3CAE90; --accent-ink:#06120E; --accent-soft:#173229;
+      --gold:#D9AE55; --gold-soft:#2E2515;
+      --line:#293A32; --line-strong:#38493F;
+      --good:#4CAF77; --good-soft:#16281D;
+      --warn:#D9AE55; --warn-soft:#2E2515;
+      --bad:#E0685A; --bad-soft:#301C18;
+      --route-a:#E0685A; --route-a-soft:#301C18;
+      --route-b:#D9AE55; --route-b-soft:#2E2515;
+      --route-c:#3CAE90; --route-c-soft:#173229;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 24px -10px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0D1512; --surface:#141F1A; --surface-2:#1B2822; --surface-3:#25342C;
+    --ink:#ECEAE1; --ink-muted:#AAB5AC; --ink-faint:#78857C;
+    --accent:#3CAE90; --accent-ink:#06120E; --accent-soft:#173229;
+    --gold:#D9AE55; --gold-soft:#2E2515;
+    --line:#293A32; --line-strong:#38493F;
+    --good:#4CAF77; --good-soft:#16281D;
+    --warn:#D9AE55; --warn-soft:#2E2515;
+    --bad:#E0685A; --bad-soft:#301C18;
+    --route-a:#E0685A; --route-a-soft:#301C18;
+    --route-b:#D9AE55; --route-b-soft:#2E2515;
+    --route-c:#3CAE90; --route-c-soft:#173229;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 24px -10px rgba(0,0,0,.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Source Sans 3', system-ui, -apple-system, sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:'Fraunces', Georgia, serif; text-wrap:balance; margin:0; color:var(--ink); }
+  .mono{ font-family:'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  a{ color:inherit; }
+  button{ font-family:inherit; }
+  [hidden]{ display:none !important; }
+
+  .wrap{ max-width:840px; margin:0 auto; padding-inline:20px; }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
+    background:var(--bg); border-bottom:1px solid var(--line);
+    backdrop-filter: blur(6px);
+  }
+  .topbar-inner{
+    max-width:840px; margin:0 auto; padding:14px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{
+    width:30px; height:30px; border-radius:7px; background:var(--accent); color:var(--accent-ink);
+    display:flex; align-items:center; justify-content:center; font-size:16px; flex:none;
+  }
+  .brand-name{ font-family:'Fraunces', serif; font-weight:600; font-size:1.02rem; letter-spacing:.01em; }
+  .brand-sub{ font-size:.72rem; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; letter-spacing:.03em; }
+  nav.tabs{ display:flex; gap:4px; background:var(--surface-2); padding:3px; border-radius:9px; flex:none; }
+  nav.tabs button{
+    border:none; background:transparent; color:var(--ink-muted); font-size:.86rem; font-weight:600;
+    padding:7px 13px; border-radius:7px; cursor:pointer; transition:background .15s, color .15s;
+  }
+  nav.tabs button.active{ background:var(--surface); color:var(--accent); box-shadow:var(--shadow); }
+  nav.tabs button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  /* ---------- fundamento page ---------- */
+  .hero{ padding:52px 0 36px; border-bottom:1px solid var(--line); }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace;
+    font-size:.74rem; letter-spacing:.06em; text-transform:uppercase; color:var(--accent);
+    background:var(--accent-soft); padding:5px 10px; border-radius:99px; margin-bottom:18px;
+  }
+  .hero h1{ font-size:2.5rem; font-weight:600; line-height:1.12; max-width:14ch; }
+  .hero p.lede{ font-size:1.12rem; color:var(--ink-muted); max-width:56ch; margin-top:16px; }
+  .cta-row{ display:flex; gap:12px; margin-top:28px; flex-wrap:wrap; }
+  .btn{
+    font-size:.95rem; font-weight:600; padding:12px 20px; border-radius:9px; border:1px solid transparent;
+    cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:transform .12s, background .15s;
+  }
+  .btn:active{ transform:scale(.98); }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
+  .btn-primary:hover{ background:var(--ink); }
+  .btn-ghost{ background:transparent; color:var(--ink); border-color:var(--line-strong); }
+  .btn-ghost:hover{ background:var(--surface-2); }
+  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  section.block{ padding:44px 0; border-bottom:1px solid var(--line); }
+  section.block:last-of-type{ border-bottom:none; }
+  .block-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:22px; }
+  .block-num{ font-family:'IBM Plex Mono',monospace; color:var(--ink-faint); font-size:.85rem; }
+  .block-head h2{ font-size:1.5rem; font-weight:600; }
+  .block-desc{ color:var(--ink-muted); max-width:62ch; margin:-8px 0 24px; }
+
+  /* problem grid */
+  .problem-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  .problem-card{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+  .problem-card h3{ font-size:.98rem; font-weight:600; margin-bottom:6px; }
+  .problem-card p{ font-size:.9rem; color:var(--ink-muted); margin:0; }
+
+  /* route path */
+  .path{ display:flex; align-items:stretch; gap:0; overflow-x:auto; padding-bottom:4px; }
+  .path-step{ display:flex; align-items:center; flex:none; }
+  .route-card{
+    width:200px; flex:none; background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:16px; display:flex; flex-direction:column; gap:8px;
+  }
+  .route-chip{
+    align-self:flex-start; font-family:'IBM Plex Mono',monospace; font-size:.72rem; font-weight:600;
+    padding:3px 9px; border-radius:99px;
+  }
+  .route-card h3{ font-size:1rem; font-weight:600; }
+  .route-card p{ font-size:.83rem; color:var(--ink-muted); margin:0; }
+  .path-arrow{ color:var(--ink-faint); font-size:1.3rem; padding:0 8px; flex:none; align-self:center; }
+
+  /* frameworks */
+  .fw-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .fw-card{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .fw-card .fw-name{ font-weight:600; font-size:.92rem; margin-bottom:4px; }
+  .fw-card .fw-desc{ font-size:.82rem; color:var(--ink-muted); }
+
+  /* infra table */
+  .infra-list{ display:flex; flex-direction:column; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--surface); }
+  .infra-row{ display:grid; grid-template-columns:140px 1fr; gap:14px; padding:13px 16px; border-bottom:1px solid var(--line); }
+  .infra-row:last-child{ border-bottom:none; }
+  .infra-tag{ font-family:'IBM Plex Mono',monospace; font-size:.8rem; font-weight:600; color:var(--accent); }
+  .infra-desc{ font-size:.87rem; color:var(--ink-muted); }
+  .infra-desc b{ color:var(--ink); font-weight:600; }
+
+  .stat-band{ display:flex; gap:24px; flex-wrap:wrap; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:20px 22px; margin-top:18px; }
+  .stat{ min-width:120px; }
+  .stat .n{ font-family:'IBM Plex Mono',monospace; font-size:1.5rem; font-weight:600; color:var(--accent); }
+  .stat .l{ font-size:.78rem; color:var(--ink-muted); margin-top:2px; }
+
+  footer.fund-footer{ padding:40px 0 70px; text-align:center; }
+  footer.fund-footer p{ color:var(--ink-faint); font-size:.82rem; margin-top:10px; }
+
+  /* ---------- diagnóstico page ---------- */
+  .diag-shell{ padding:32px 0 80px; }
+  .progress-wrap{ margin-bottom:30px; }
+  .progress-labels{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-faint); margin-bottom:8px; letter-spacing:.02em; }
+  .progress-track{ height:6px; background:var(--surface-2); border-radius:99px; overflow:hidden; }
+  .progress-fill{ height:100%; background:var(--accent); border-radius:99px; transition:width .3s ease; }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:28px; box-shadow:var(--shadow); }
+  .step-kicker{ font-family:'IBM Plex Mono',monospace; font-size:.74rem; color:var(--accent); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
+  .step-title{ font-size:1.4rem; font-weight:600; margin-bottom:6px; }
+  .step-sub{ color:var(--ink-muted); font-size:.92rem; margin-bottom:22px; max-width:56ch; }
+
+  .q-block{ padding:18px 0; border-top:1px solid var(--line); }
+  .q-block:first-of-type{ border-top:none; padding-top:0; }
+  .q-text{ font-weight:600; font-size:.98rem; margin-bottom:12px; }
+  .opt-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .opt{
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink);
+    padding:9px 15px; border-radius:9px; font-size:.88rem; cursor:pointer; font-weight:500;
+    transition:background .12s, border-color .12s, color .12s;
+  }
+  .opt:hover{ background:var(--surface-2); }
+  .opt.sel{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .opt:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .slider-row{ display:flex; align-items:center; gap:14px; }
+  .slider-row input[type=range]{ flex:1; accent-color:var(--accent); height:4px; }
+  .slider-val{ font-family:'IBM Plex Mono',monospace; font-weight:600; width:70px; text-align:right; font-size:.85rem; flex:none; }
+  .slider-anchors{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-faint); margin-top:6px; }
+
+  .ladder{ display:flex; flex-direction:column; gap:8px; }
+  .ladder-opt{
+    display:flex; align-items:flex-start; gap:12px; text-align:left; width:100%;
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink);
+    padding:12px 14px; border-radius:10px; cursor:pointer; font-family:inherit;
+    transition:background .12s, border-color .12s;
+  }
+  .ladder-opt:hover{ background:var(--surface-2); }
+  .ladder-opt.sel{ background:var(--accent-soft); border-color:var(--accent); }
+  .ladder-opt:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .ladder-badge{
+    flex:none; width:24px; height:24px; border-radius:99px; background:var(--surface-3);
+    color:var(--ink-muted); font-family:'IBM Plex Mono',monospace; font-size:.72rem; font-weight:600;
+    display:flex; align-items:center; justify-content:center; margin-top:1px;
+  }
+  .ladder-opt.sel .ladder-badge{ background:var(--accent); color:var(--accent-ink); }
+  .ladder-text{ font-size:.9rem; line-height:1.45; color:var(--ink-muted); }
+  .ladder-opt.sel .ladder-text{ color:var(--ink); }
+  .dim-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .dim-status{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-faint); }
+
+  .step-nav{ display:flex; justify-content:space-between; margin-top:26px; }
+
+  .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:99px; font-size:.78rem; font-weight:600; font-family:'IBM Plex Mono',monospace; }
+
+  /* results */
+  .result-head{ display:flex; align-items:center; gap:14px; margin-bottom:6px; flex-wrap:wrap; }
+  .result-route-name{ font-size:1.6rem; }
+  .bars{ margin-top:22px; display:flex; flex-direction:column; gap:14px; }
+  .bar-row{ display:grid; grid-template-columns:170px 1fr 54px; align-items:center; gap:12px; }
+  .bar-label{ font-size:.85rem; color:var(--ink-muted); font-weight:500; }
+  .bar-track{ height:12px; background:var(--surface-2); border-radius:99px; overflow:hidden; position:relative; }
+  .bar-fill{ height:100%; border-radius:99px; }
+  .bar-score{ font-family:'IBM Plex Mono',monospace; font-size:.82rem; text-align:right; }
+  .legend{ display:flex; gap:16px; margin-top:16px; flex-wrap:wrap; }
+  .legend-item{ display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--ink-muted); }
+  .legend-dot{ width:9px; height:9px; border-radius:99px; flex:none; }
+
+  .callout{ margin-top:26px; border-radius:12px; padding:20px 22px; border:1px solid var(--line); }
+  .callout .callout-kicker{ font-family:'IBM Plex Mono',monospace; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
+  .callout h3{ font-size:1.05rem; font-weight:600; margin-bottom:8px; }
+  .callout p{ margin:0; font-size:.92rem; color:var(--ink-muted); }
+
+  .restart-row{ margin-top:28px; display:flex; justify-content:center; }
+  .note{ text-align:center; color:var(--ink-faint); font-size:.78rem; margin-top:18px; }
+
+  @media (max-width:640px){
+    .hero h1{ font-size:1.9rem; }
+    .problem-grid, .fw-grid{ grid-template-columns:1fr; }
+    .infra-row{ grid-template-columns:1fr; }
+    .bar-row{ grid-template-columns:110px 1fr 40px; }
+    .brand-sub{ display:none; }
+    .card{ padding:20px; }
+  }
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">🧭</div>
+      <div>
+        <div class="brand-name">Diagnóstico Ruta Milagro</div>
+        <div class="brand-sub">CIRCULAR 18/2026 · PROGRAMA 1</div>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button id="tab-fundamento" class="active" role="tab" aria-selected="true">Fundamento</button>
+      <button id="tab-diagnostico" role="tab" aria-selected="false">Diagnóstico</button>
+    </nav>
+  </div>
+</div>
+
+<!-- ============ PÁGINA 1: FUNDAMENTO ============ -->
+<div id="page-fundamento">
+  <div class="wrap">
+    <section class="hero">
+      <span class="eyebrow">Programa 1 · Ruta Milagro</span>
+      <h1>Un diagnóstico para fortalecimiento, formalización y crecimiento</h1>
+      <p class="lede">La Circular Externa 18/2026 del MinCIT exige, para el Programa 1, una caracterización y diagnóstico inicial por cada empresa beneficiaria. Este instrumento está diseñado específicamente para eso — no es un cuestionario de competitividad genérico.</p>
+      <div class="cta-row">
+        <button class="btn btn-primary" onclick="goTo('diagnostico')">Ir al diagnóstico →</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('marcos').scrollIntoView({behavior:'smooth'})">Ver el fundamento</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><span class="block-num">01</span><h2>Por qué un diagnóstico genérico no basta</h2></div>
+      <p class="block-desc">La base empresarial que atiende cada cámara no parte del mismo punto: desde la unidad informal sin registro hasta la PYME formal buscando escalar. Un solo cuestionario de gestión no sirve igual para ambas.</p>
+      <div class="problem-grid">
+        <div class="problem-card">
+          <h3>Tres mandatos, no uno</h3>
+          <p>Fortalecimiento, formalización y crecimiento son lógicas de intervención distintas. Tratarlas como una sola dimensión promedia el problema en vez de resolverlo.</p>
+        </div>
+        <div class="problem-card">
+          <h3>La base informal no está cubierta</h3>
+          <p>Los diagnósticos de competitividad estándar asumen una empresa ya organizada. La mayoría de unidades productivas que llegan por el Programa 1 no lo están.</p>
+        </div>
+        <div class="problem-card">
+          <h3>Un puntaje agregado no orienta</h3>
+          <p>Promediar seis dimensions en un número no le dice al asesor por dónde empezar. Hace falta identificar la restricción que, resuelta primero, libera el resto.</p>
+        </div>
+        <div class="problem-card">
+          <h3>Debe ser comparable</h3>
+          <p>Cada cámara reporta al mismo Ministerio bajo el mismo plazo. El instrumento necesita una salida común, aunque el recorrido de entrada varíe.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><span class="block-num">02</span><h2>Triage inicial, tres rutas, una sola salida</h2></div>
+      <p class="block-desc">Tres preguntas de cribado (2–3 minutos) asignan la ruta. El contenido y la profundidad cambian; el modelo de datos y el reporte final son los mismos para las tres.</p>
+      <div class="path">
+        <div class="path-step">
+          <div class="route-card">
+            <span class="route-chip" style="background:var(--route-a-soft); color:var(--route-a);">RUTA A</span>
+            <h3>Pre-formal</h3>
+            <p>Sin RUT ni matrícula vigente. Foco: viabilidad y formalización.</p>
+          </div>
+        </div>
+        <div class="path-arrow">→</div>
+        <div class="path-step">
+          <div class="route-card">
+            <span class="route-chip" style="background:var(--route-b-soft); color:var(--route-b);">RUTA B</span>
+            <h3>Fortalecimiento</h3>
+            <p>Formal, con sistemas y cumplimiento débiles o parciales.</p>
+          </div>
+        </div>
+        <div class="path-arrow">→</div>
+        <div class="path-step">
+          <div class="route-card">
+            <span class="route-chip" style="background:var(--route-c-soft); color:var(--route-c);">RUTA C</span>
+            <h3>Crecimiento</h3>
+            <p>Cumplimiento pleno, buscando mercado, crédito o escalar.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="marcos">
+      <div class="block-head"><span class="block-num">03</span><h2>Fundamento internacional</h2></div>
+      <p class="block-desc">Seis marcos de referencia, más la experiencia acumulada en programas de línea base y cierre de brechas en el ecosistema colombiano de desarrollo empresarial, sostienen el diseño.</p>
+      <div class="fw-grid">
+        <div class="fw-card"><div class="fw-name">Recomendación 204, OIT</div><div class="fw-desc">La informalidad es una decisión de costo-beneficio, no un vacío de cultura empresarial.</div></div>
+        <div class="fw-card"><div class="fw-name">SME Competitiveness Grid, ITC</div><div class="fw-desc">Tres capacidades — competir, conectar, cambiar — como esqueleto de dimensiones.</div></div>
+        <div class="fw-card"><div class="fw-name">World Management Survey</div><div class="fw-desc">Cinco prácticas gerenciales núcleo: metas, monitoreo, operación, liderazgo, talento.</div></div>
+        <div class="fw-card"><div class="fw-name">Growth Diagnostics</div><div class="fw-desc">Árbol de decisión para encontrar la restricción vinculante, no promediar un puntaje.</div></div>
+        <div class="fw-card"><div class="fw-name">Cinco etapas de Churchill y Lewis</div><div class="fw-desc">La profundidad del diagnóstico cambia según qué tan desarrollada está la empresa.</div></div>
+        <div class="fw-card"><div class="fw-name">SEBRAE (Brasil)</div><div class="fw-desc">Una sola herramienta, autoevaluación corta, ruta diferenciada, salida comparable.</div></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><span class="block-num">04</span><h2>Se conecta con lo que ya existe — no lo reemplaza</h2></div>
+      <p class="block-desc">Colombia ya tiene infraestructura de formalización operando en las 58 cámaras. El diagnóstico se engancha a ella; no re-tramita lo que ya resuelven.</p>
+      <div class="infra-list">
+        <div class="infra-row"><span class="infra-tag">CAE</span><span class="infra-desc"><b>Centro de Atención Empresarial</b> — ventanilla única de cada cámara para matrícula mercantil, RUT, uso de suelo y demás trámites de creación.</span></div>
+        <div class="infra-row"><span class="infra-tag">VUE</span><span class="infra-desc"><b>Ventanilla Única Empresarial</b> — portal nacional que centraliza el trámite y lista los programas propios de cada cámara.</span></div>
+        <div class="infra-row"><span class="infra-tag">DIAN</span><span class="infra-desc"><b>Ruta de la Formalización</b> — simulador, cartillas y líderes regionales sobre el Régimen Simple de Tributación.</span></div>
+        <div class="infra-row"><span class="infra-tag">CONPES 3956</span><span class="infra-desc">Marco nacional que trata la formalización como proceso multidimensional; dio origen a la VUE y al SAT.</span></div>
+        <div class="infra-row"><span class="infra-tag">RUES</span><span class="infra-desc">Registro administrado por Confecámaras — permite verificar el estado real de formalización sin depender del auto-reporte.</span></div>
+      </div>
+      <div class="stat-band">
+        <div class="stat"><div class="n">173.907</div><div class="l">empresas nuevas en Colombia, primer semestre de 2025</div></div>
+        <div class="stat"><div class="n">+1,9%</div><div class="l">frente al mismo periodo de 2024</div></div>
+        <div class="stat"><div class="n">74% <span style="color:var(--ink-faint);font-size:.9rem;">vs 26%</span></div><div class="l">se registró como persona natural vs. sociedad formal</div></div>
+      </div>
+      <p class="block-desc" style="margin-top:18px;">La sola inscripción no dice nada sobre si esa empresa tiene la capacidad para sostenerse o crecer. Ahí es exactamente donde empieza este diagnóstico: no en el trámite, en la capacidad. <span class="mono" style="color:var(--ink-faint); font-size:.78rem;">Fuente: Confecámaras, Dinámica de Creación de Empresas en Colombia, primer semestre de 2025.</span></p>
+    </section>
+
+    <footer class="fund-footer">
+      <button class="btn btn-primary" onclick="goTo('diagnostico')">Empezar el diagnóstico →</button>
+      <p>Instrumento de caracterización — Programa 1, Circular Externa 18/2026, MinCIT.</p>
+    </footer>
+  </div>
+</div>
+
+<!-- ============ PÁGINA 2: DIAGNÓSTICO ============ -->
+<div id="page-diagnostico" hidden>
+  <div class="wrap diag-shell">
+
+    <div class="progress-wrap">
+      <div class="progress-labels">
+        <span id="progress-step-label">PASO 1 DE 4 · TRIAGE</span>
+        <span id="progress-pct">25%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:25%"></div></div>
+    </div>
+
+    <!-- STEP 0: TRIAGE -->
+    <div class="card" id="step-triage">
+      <div class="step-kicker">Paso 1</div>
+      <div class="step-title">Ubiquemos su empresa</div>
+      <div class="step-sub">Tres preguntas para asignar la ruta correcta. Responda la primera para continuar.</div>
+
+      <div class="q-block" id="q1-block">
+        <div class="q-text">¿Su negocio tiene RUT y matrícula mercantil vigente?</div>
+        <div class="opt-row" data-q="q1">
+          <button class="opt" data-val="no">No</button>
+          <button class="opt" data-val="si">Sí</button>
+        </div>
+      </div>
+
+      <div class="q-block" id="q2-block" hidden>
+        <div class="q-text">¿Lleva contabilidad separada de sus finanzas personales y está al día con los aportes laborales de su equipo?</div>
+        <div class="opt-row" data-q="q2">
+          <button class="opt" data-val="no">No o parcial</button>
+          <button class="opt" data-val="si">Sí</button>
+        </div>
+      </div>
+
+      <div class="q-block" id="q3-block" hidden>
+        <div class="q-text">¿Está buscando activamente nuevos mercados, crédito o escalar su operación?</div>
+        <div class="opt-row" data-q="q3">
+          <button class="opt" data-val="no">No, por ahora</button>
+          <button class="opt" data-val="si">Sí, activamente</button>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <span></span>
+        <button class="btn btn-primary" id="btn-triage-next" disabled onclick="goStep(1)">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- STEP 1: NÚCLEO COMÚN -->
+    <div class="card" id="step-nucleo" hidden>
+      <div class="step-kicker">Paso 2</div>
+      <div class="step-title">Seis dimensiones núcleo</div>
+      <div class="step-sub">Para cada tema, elija la descripción que más se parezca a su negocio hoy — no un número abstracto. Esta parte es igual para las tres rutas.</div>
+      <div id="nucleo-sliders"></div>
+      <div class="step-nav">
+        <button class="btn btn-ghost" onclick="goStep(0)">← Atrás</button>
+        <button class="btn btn-primary" id="btn-nucleo-next" disabled onclick="goStep(2)">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: MÓDULO DE RUTA -->
+    <div class="card" id="step-modulo" hidden>
+      <div class="step-kicker">Paso 3</div>
+      <div class="step-title" id="modulo-title">Profundizando en su ruta</div>
+      <div class="step-sub" id="modulo-sub"></div>
+      <div id="modulo-questions"></div>
+      <div class="step-nav">
+        <button class="btn btn-ghost" onclick="goStep(1)">← Atrás</button>
+        <button class="btn btn-primary" id="btn-modulo-next" disabled onclick="goStep(3)">Ver resultado →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: RESULTADO -->
+    <div class="card" id="step-resultado" hidden>
+      <div class="step-kicker">Resultado</div>
+      <div class="result-head">
+        <h2 class="result-route-name" id="res-route-name">Ruta B — Fortalecimiento</h2>
+        <span class="badge" id="res-route-badge">RUTA B</span>
+      </div>
+      <p class="step-sub" id="res-route-desc" style="margin-bottom:6px;"></p>
+
+      <div class="bars" id="res-bars"></div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot" style="background:var(--bad);"></span>Necesita atención (1–2)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--warn);"></span>En desarrollo (3)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--good);"></span>Consolidado (4–5)</span>
+      </div>
+
+      <div class="callout" id="res-callout">
+        <div class="callout-kicker">Restricción vinculante</div>
+        <h3 id="res-callout-title"></h3>
+        <p id="res-callout-text"></p>
+      </div>
+
+      <div class="restart-row">
+        <button class="btn btn-ghost" onclick="restart()">↺ Volver a empezar</button>
+      </div>
+      <p class="note">Diagnóstico ilustrativo — los resultados se calculan en este navegador y no quedan almacenados.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- navegación de páginas ----------
+  var tabF = document.getElementById('tab-fundamento');
+  var tabD = document.getElementById('tab-diagnostico');
+  var pageF = document.getElementById('page-fundamento');
+  var pageD = document.getElementById('page-diagnostico');
+
+  function goTo(page){
+    var isF = page === 'fundamento';
+    pageF.hidden = !isF; pageD.hidden = isF;
+    tabF.classList.toggle('active', isF); tabD.classList.toggle('active', !isF);
+    tabF.setAttribute('aria-selected', isF); tabD.setAttribute('aria-selected', !isF);
+    window.scrollTo({top:0});
+  }
+  tabF.addEventListener('click', function(){ goTo('fundamento'); });
+  tabD.addEventListener('click', function(){ goTo('diagnostico'); });
+  window.goTo = goTo;
+
+  // ---------- estado del diagnóstico ----------
+  function emptyNucleo(){ return { legal:null, fin:null, com:null, ops:null, talento:null, digital:null }; }
+  var state = {
+    triage: { q1:null, q2:null, q3:null },
+    route: null,
+    nucleo: emptyNucleo(),
+    modulo: []
+  };
+
+  var NUCLEO_DEFS = [
+    { key:'legal', label:'Identidad y estado legal', levels:[
+      'No tengo RUT ni matrícula mercantil, y no he empezado el trámite.',
+      'Empecé el trámite de RUT o matrícula mercantil, pero no lo he terminado.',
+      'Tengo RUT y matrícula mercantil, pero está vencida o me falta algún permiso (uso de suelo, sanidad, bomberos).',
+      'Tengo RUT, matrícula mercantil vigente y los permisos que exige mi actividad.',
+      'Además de estar formalizado, declaro y pago mis obligaciones tributarias sin atrasos.'
+    ]},
+    { key:'fin', label:'Gestión financiera básica', levels:[
+      'No separo el dinero del negocio del mío; no llevo ningún registro.',
+      'Anoto ventas o gastos de vez en cuando, mezclados con mis finanzas personales.',
+      'Llevo un registro básico (cuaderno o Excel) de ingresos y gastos, pero no sé cuánto me cuesta producir cada cosa que vendo.',
+      'Separo las cuentas del negocio, registro ingresos y costos, y conozco mi margen aproximado.',
+      'Tengo estados financieros básicos (o un contador) que reviso periódicamente para decidir.'
+    ]},
+    { key:'com', label:'Gestión comercial y mercado', levels:[
+      'Dependo de 1 o 2 clientes, o de que la gente pase por el local; si uno falla, el negocio se resiente.',
+      'Tengo varios clientes, pero no sé cuáles compran más ni por qué vuelven.',
+      'Conozco a mis clientes principales y tengo un canal de venta estable (local, redes, encargos).',
+      'Vendo por más de un canal y sé a qué tipo de cliente le vendo mejor.',
+      'Tengo una base de clientes diversificada y una estrategia activa para conseguir nuevos.'
+    ]},
+    { key:'ops', label:'Gestión operativa y productiva', levels:[
+      'Cada pedido o servicio se resuelve "como se pueda"; no hay una forma fija de hacerlo.',
+      'Hay una forma de hacer las cosas, pero solo yo (o una persona) la conoce y cambia según el día.',
+      'Tengo pasos definidos para lo esencial, aunque no están escritos ni todos los siguen igual.',
+      'Los procesos clave están definidos y escritos, y sé dónde se traba la producción o el servicio.',
+      'Mis procesos están estandarizados, los mido y busco mejorarlos activamente.'
+    ]},
+    { key:'talento', label:'Talento humano y empleo', levels:[
+      'Trabajo solo, o con ayuda ocasional sin ningún tipo de vinculación formal.',
+      'Tengo personas que me ayudan de forma regular, pero sin afiliación a seguridad social.',
+      'Parte de mi equipo está afiliado a seguridad social; el resto no.',
+      'Todo mi equipo está afiliado a seguridad social y tiene roles claros.',
+      'Además de estar todos afiliados, invierto en capacitarlos o desarrollarlos.'
+    ]},
+    { key:'digital', label:'Adopción digital', levels:[
+      'No uso ninguna herramienta digital para vender o gestionar el negocio.',
+      'Uso WhatsApp o redes sociales de forma informal para vender, sin ningún otro sistema.',
+      'Tengo presencia digital activa (redes, catálogo o similar), pero gestiono todo lo demás a mano.',
+      'Uso alguna herramienta digital para gestionar ventas, inventario o clientes, no solo para vender.',
+      'Integro varias herramientas digitales (ventas, gestión, pagos) que me dan información para decidir.'
+    ]}
+  ];
+
+  var MODULE_DEFS = {
+    A: {
+      title: 'Ruta A — Formalización y viabilidad',
+      sub: 'Tres preguntas para medir si formalizarse le serviría a este negocio en concreto.',
+      questions: [
+        { text:'¿Conoce beneficios concretos de formalizarse para su negocio (crédito, contratos, programas de apoyo)?', opts:[['No',1],['Algo',2],['Sí',3]] },
+        { text:'En su opinión, ¿los ingresos actuales justificarían el costo de formalizarse?', opts:[['No',1],['Tal vez',2],['Sí',3]] },
+        { text:'¿Conoce mecanismos como el registro simplificado (CAE), constituirse como SAS, el Régimen Simple de Tributación o los beneficios para nuevas empresas de la Ley de Emprendimiento?', opts:[['No',1],['Algo',2],['Sí',3]] }
+      ]
+    },
+    B: {
+      title: 'Ruta B — Sistemas y cumplimiento',
+      sub: 'Tres preguntas sobre qué tan instalada está la gestión básica del negocio.',
+      questions: [
+        { text:'¿Su negocio fija metas concretas y les hace seguimiento periódico?', opts:[['No',1],['A veces',2],['Sí',3]] },
+        { text:'¿Todo su equipo está afiliado a seguridad social?', opts:[['No',1],['Parcialmente',2],['Sí',3]] },
+        { text:'¿Tiene una estructura mínima de roles, más allá del dueño?', opts:[['No',1],['En parte',2],['Sí',3]] }
+      ]
+    },
+    C: {
+      title: 'Ruta C — Mercado, finanzas e innovación',
+      sub: 'Tres preguntas sobre qué tan lista está la empresa para escalar.',
+      questions: [
+        { text:'¿Ha identificado mercados o clientes nuevos a los que podría vender?', opts:[['No',1],['Algo explorado',2],['Sí, activamente',3]] },
+        { text:'¿Tiene acceso a financiamiento formal (crédito bancario, inversión)?', opts:[['No',1],['Limitado',2],['Sí',3]] },
+        { text:'¿Su capacidad instalada está siendo aprovechada al máximo?', opts:[['No, hay holgura',1],['Parcialmente',2],['Sí, al límite',3]] }
+      ]
+    }
+  };
+
+  var ROUTE_META = {
+    A: { name:'Ruta A — Pre-formal', badge:'RUTA A', color:'route-a', desc:'Unidad productiva sin registro vigente. El foco es viabilidad y formalización, no gestión avanzada todavía.' },
+    B: { name:'Ruta B — Fortalecimiento', badge:'RUTA B', color:'route-b', desc:'Formal, con sistemas de gestión, finanzas o cumplimiento débiles o parciales.' },
+    C: { name:'Ruta C — Crecimiento', badge:'RUTA C', color:'route-c', desc:'Cumplimiento pleno, buscando activamente escalar, entrar a nuevos mercados o acceder a financiamiento.' }
+  };
+
+  // ---------- paso 0: triage ----------
+  var q1Block = document.getElementById('q1-block');
+  var q2Block = document.getElementById('q2-block');
+  var q3Block = document.getElementById('q3-block');
+  var btnTriageNext = document.getElementById('btn-triage-next');
+
+  function wireOptRow(container, onPick){
+    var buttons = container.querySelectorAll('.opt');
+    buttons.forEach(function(b){
+      b.addEventListener('click', function(){
+        buttons.forEach(function(x){ x.classList.remove('sel'); });
+        b.classList.add('sel');
+        onPick(b.getAttribute('data-val'));
+      });
+    });
+  }
+
+  wireOptRow(q1Block.querySelector('.opt-row'), function(val){
+    state.triage.q1 = val;
+    state.triage.q2 = null; state.triage.q3 = null;
+    q3Block.hidden = true;
+    if(val === 'no'){
+      state.route = 'A';
+      q2Block.hidden = true;
+      btnTriageNext.disabled = false;
+    } else {
+      q2Block.hidden = false;
+      btnTriageNext.disabled = true;
+    }
+  });
+
+  wireOptRow(q2Block.querySelector('.opt-row'), function(val){
+    state.triage.q2 = val;
+    state.triage.q3 = null;
+    if(val === 'no'){
+      state.route = 'B';
+      q3Block.hidden = true;
+      btnTriageNext.disabled = false;
+    } else {
+      q3Block.hidden = false;
+      btnTriageNext.disabled = true;
+    }
+  });
+
+  wireOptRow(q3Block.querySelector('.opt-row'), function(val){
+    state.triage.q3 = val;
+    state.route = (val === 'si') ? 'C' : 'B';
+    btnTriageNext.disabled = false;
+  });
+
+  // ---------- paso 1: núcleo (escalera de nivel por dimensión) ----------
+  var nucleoContainer = document.getElementById('nucleo-sliders');
+  var btnNucleoNext = document.getElementById('btn-nucleo-next');
+
+  function checkNucleoComplete(){
+    var complete = NUCLEO_DEFS.every(function(d){ return state.nucleo[d.key] !== null; });
+    btnNucleoNext.disabled = !complete;
+  }
+
+  NUCLEO_DEFS.forEach(function(def){
+    var block = document.createElement('div');
+    block.className = 'q-block';
+    var statusId = 'status-' + def.key;
+    var optsHtml = def.levels.map(function(text, i){
+      return '<button type="button" class="ladder-opt" data-level="' + (i+1) + '">' +
+               '<span class="ladder-badge">' + (i+1) + '</span>' +
+               '<span class="ladder-text">' + text + '</span>' +
+             '</button>';
+    }).join('');
+    block.innerHTML =
+      '<div class="dim-head"><span class="q-text" style="margin-bottom:0;">' + def.label + '</span>' +
+        '<span class="dim-status" id="' + statusId + '">Sin responder</span></div>' +
+      '<div class="ladder" data-dim="' + def.key + '">' + optsHtml + '</div>';
+    nucleoContainer.appendChild(block);
+
+    var ladder = block.querySelector('.ladder');
+    var statusEl = block.querySelector('#' + statusId);
+    ladder.querySelectorAll('.ladder-opt').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        ladder.querySelectorAll('.ladder-opt').forEach(function(b){ b.classList.remove('sel'); });
+        btn.classList.add('sel');
+        var level = parseInt(btn.getAttribute('data-level'), 10);
+        state.nucleo[def.key] = level;
+        statusEl.textContent = level + ' / 5';
+        checkNucleoComplete();
+      });
+    });
+  });
+
+  // ---------- paso 2: módulo de ruta ----------
+  var moduloTitle = document.getElementById('modulo-title');
+  var moduloSub = document.getElementById('modulo-sub');
+  var moduloContainer = document.getElementById('modulo-questions');
+  var btnModuloNext = document.getElementById('btn-modulo-next');
+
+  function renderModulo(){
+    var def = MODULE_DEFS[state.route];
+    moduloTitle.textContent = def.title;
+    moduloSub.textContent = def.sub;
+    moduloContainer.innerHTML = '';
+    state.modulo = new Array(def.questions.length).fill(null);
+    def.questions.forEach(function(q, idx){
+      var block = document.createElement('div');
+      block.className = 'q-block';
+      var optsHtml = q.opts.map(function(o){
+        return '<button class="opt" data-val="' + o[1] + '">' + o[0] + '</button>';
+      }).join('');
+      block.innerHTML = '<div class="q-text">' + q.text + '</div><div class="opt-row">' + optsHtml + '</div>';
+      moduloContainer.appendChild(block);
+      wireOptRow(block.querySelector('.opt-row'), function(val){
+        state.modulo[idx] = parseInt(val, 10);
+        btnModuloNext.disabled = state.modulo.some(function(v){ return v === null; });
+      });
+    });
+    btnModuloNext.disabled = true;
+  }
+
+  // ---------- pasos / progreso ----------
+  var steps = ['step-triage','step-nucleo','step-modulo','step-resultado'];
+  var stepLabels = ['PASO 1 DE 4 · TRIAGE','PASO 2 DE 4 · NÚCLEO','PASO 3 DE 4 · MÓDULO DE RUTA','RESULTADO'];
+  var progressPct = [25,50,75,100];
+  var current = 0;
+
+  function goStep(n){
+    if(n === 2) renderModulo();
+    if(n === 3) renderResultado();
+    steps.forEach(function(id, i){ document.getElementById(id).hidden = (i !== n); });
+    document.getElementById('progress-step-label').textContent = stepLabels[n];
+    document.getElementById('progress-pct').textContent = progressPct[n] + '%';
+    document.getElementById('progress-fill').style.width = progressPct[n] + '%';
+    current = n;
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  window.goStep = goStep;
+
+  function restart(){
+    state = { triage:{q1:null,q2:null,q3:null}, route:null, nucleo:emptyNucleo(), modulo:[] };
+    document.querySelectorAll('.opt.sel, .ladder-opt.sel').forEach(function(b){ b.classList.remove('sel'); });
+    q2Block.hidden = true; q3Block.hidden = true;
+    btnTriageNext.disabled = true;
+    btnNucleoNext.disabled = true;
+    NUCLEO_DEFS.forEach(function(def){
+      var statusEl = document.getElementById('status-' + def.key);
+      if(statusEl){ statusEl.textContent = 'Sin responder'; }
+    });
+    goStep(0);
+  }
+  window.restart = restart;
+
+  // ---------- resultado ----------
+  var STATUS = {
+    good: { color:'var(--good)', label:'Consolidado' },
+    warn: { color:'var(--warn)', label:'En desarrollo' },
+    bad:  { color:'var(--bad)', label:'Necesita atención' }
+  };
+  function statusFor(score){
+    if(score >= 4) return STATUS.good;
+    if(score === 3) return STATUS.warn;
+    return STATUS.bad;
+  }
+
+  var CONSTRAINT_TEXT = {
+    A: {
+      legal: 'La restricción vinculante es la informalidad misma. Antes de profundizar en gestión, resuelva el registro a través del Centro de Atención Empresarial (CAE) de su cámara o el simulador de la Ruta de la Formalización de la DIAN.'
+    },
+    B: {
+      legal:   'Su cumplimiento normativo tiene brechas — licencias, renovación de matrícula o aportes laborales. Ciérrelas con su cámara antes de invertir en otras áreas.',
+      fin:     'La gestión financiera básica es la prioridad. Separar sus finanzas y llevar un registro simple de ingresos y costos es el paso de mayor impacto ahora.',
+      com:     'La concentración comercial es la restricción. Diversificar clientes y estabilizar la demanda debe ir antes que invertir en otras áreas.',
+      ops:     'La falta de procesos estandarizados es la restricción. Ordenar la operación —insumos, turnos, calidad— libera capacidad sin gastar más.',
+      talento: 'La formalidad laboral es la restricción. Afiliar a su equipo a seguridad social reduce el riesgo legal y mejora la retención.',
+      digital: 'La adopción digital es la restricción. Herramientas básicas de venta o gestión pueden liberar tiempo y visibilidad rápidamente.'
+    },
+    C: {
+      legal:   'Incluso buscando crecer, quedan brechas de cumplimiento. Ciérrelas primero: sostienen todo lo demás.',
+      fin:     'La base financiera es la restricción. Sin costeo claro, cualquier expansión es más riesgosa de lo necesario.',
+      com:     'La concentración de mercado es la restricción. Para escalar hace falta diversificar antes de crecer el volumen actual.',
+      ops:     'La capacidad operativa ociosa o sin estandarizar es la restricción — ahí está el crecimiento más barato: el que ya tiene instalado.',
+      talento: 'La estructura de talento es la restricción. Crecer sin delegar satura al dueño antes que a la operación.',
+      digital: 'La adopción digital es la restricción. Sin ella, el acceso a nuevos mercados es más lento y más caro.'
+    }
+  };
+
+  var PRIORITY = ['legal','fin','com','ops','talento','digital'];
+
+  function pickConstraint(){
+    if(state.route === 'A') return 'legal';
+    var lowest = null, lowestVal = 99;
+    PRIORITY.forEach(function(k){
+      var v = state.nucleo[k];
+      if(v < lowestVal){ lowestVal = v; lowest = k; }
+    });
+    return lowest;
+  }
+
+  function renderResultado(){
+    var meta = ROUTE_META[state.route];
+    document.getElementById('res-route-name').textContent = meta.name;
+    document.getElementById('res-route-desc').textContent = meta.desc;
+    var badge = document.getElementById('res-route-badge');
+    badge.textContent = meta.badge;
+    badge.style.background = 'var(--' + meta.color + '-soft)';
+    badge.style.color = 'var(--' + meta.color + ')';
+
+    var barsWrap = document.getElementById('res-bars');
+    barsWrap.innerHTML = '';
+    NUCLEO_DEFS.forEach(function(def){
+      var score = state.nucleo[def.key];
+      var st = statusFor(score);
+      var row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML =
+        '<span class="bar-label">' + def.label + '</span>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + (score/5*100) + '%; background:' + st.color + ';"></div></div>' +
+        '<span class="bar-score mono">' + score + ' / 5</span>';
+      barsWrap.appendChild(row);
+    });
+
+    var key = pickConstraint();
+    var text = (CONSTRAINT_TEXT[state.route] && CONSTRAINT_TEXT[state.route][key]) || CONSTRAINT_TEXT.B[key];
+    var label = NUCLEO_DEFS.find(function(d){ return d.key === key; }).label;
+    document.getElementById('res-callout-title').textContent = label;
+    document.getElementById('res-callout-text').textContent = text;
+
+    var callout = document.getElementById('res-callout');
+    callout.style.background = 'var(--' + meta.color + '-soft)';
+    callout.style.borderColor = 'var(--' + meta.color + ')';
+    document.querySelector('.callout-kicker').style.color = 'var(--' + meta.color + ')';
+
+    if(state.route === 'A'){
+      var readiness = state.modulo.reduce(function(a,b){ return a + b; }, 0) / (state.modulo.length * 3);
+      var readinessLabel = readiness >= 0.75 ? 'Alta' : (readiness >= 0.45 ? 'Media' : 'Baja');
+      document.getElementById('res-callout-text').textContent += ' Disposición para formalizarse, según sus respuestas: ' + readinessLabel + '.';
+    }
+  }
+
+  restart();
+})();
+</script>
