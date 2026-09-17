@@ -231,6 +231,10 @@
   .callout h3{ font-size:1.05rem; font-weight:600; margin-bottom:8px; }
   .callout p{ margin:0; font-size:.92rem; color:var(--ink-muted); }
 
+  .action-callout{ margin-top:14px; background:var(--surface); border:1px solid var(--line-strong); }
+  .action-callout .callout-kicker{ color:var(--accent); }
+  .action-tag{ margin-top:12px; font-size:.74rem; color:var(--ink-faint); padding-top:12px; border-top:1px dashed var(--line); }
+
   .restart-row{ margin-top:28px; display:flex; justify-content:center; }
   .note{ text-align:center; color:var(--ink-faint); font-size:.78rem; margin-top:18px; }
 
@@ -458,10 +462,17 @@
         <p id="res-callout-text"></p>
       </div>
 
+      <div class="callout action-callout" id="res-action">
+        <div class="callout-kicker" id="res-action-kicker">Qué hacer ahora</div>
+        <h3 id="res-action-title"></h3>
+        <p id="res-action-text"></p>
+        <div class="action-tag mono" id="res-action-tag"></div>
+      </div>
+
       <div class="restart-row">
         <button class="btn btn-ghost" onclick="restart()">↺ Volver a empezar</button>
       </div>
-      <p class="note">Diagnóstico ilustrativo — los resultados se calculan en este navegador y no quedan almacenados.</p>
+      <p class="note">Diagnóstico ilustrativo — los resultados se calculan en este navegador y no quedan almacenados. Las referencias a servicios de cámara de comercio son orientativas: la oferta exacta varía por cámara.</p>
     </div>
 
   </div>
@@ -761,6 +772,32 @@
     }
   };
 
+  var NEXT_STEP = {
+    A: {
+      legal: {
+        title: 'Matricúlese a través de su cámara de comercio',
+        body: 'Este es el paso que habilita todo lo demás — sin él, ningún otro servicio de fortalecimiento o crecimiento aplica todavía. Acérquese al Centro de Atención Empresarial (CAE) de su cámara: es la ventanilla que integra en un solo trámite el RUT, la matrícula mercantil y los permisos que le exija su actividad (uso de suelo, sanidad, bomberos). Si quiere revisar costos y requisitos antes de ir, la Ruta de la Formalización de la DIAN tiene un simulador en línea.',
+        tag: 'Trámite: CAE — cámara de comercio · Simulador: Ruta de la Formalización, DIAN'
+      }
+    },
+    B: {
+      legal:   { title:'Regularice su cumplimiento con su cámara', body:'Acérquese a su cámara de comercio para renovar la matrícula mercantil, completar licencias o permisos pendientes y poner al día los aportes de su equipo. Es la prioridad porque suele habilitar el acceso a los demás servicios de fortalecimiento.', tag:'Servicio: renovación y cumplimiento — cámara de comercio' },
+      fin:     { title:'Busque asesoría financiera básica', body:'Pregunte en su cámara por asesoría empresarial o formación en gestión financiera para negocios en esta etapa: separar cuentas, costear lo que vende y entender su margen real, antes de buscar crédito.', tag:'Servicio: asesoría empresarial — cámara de comercio' },
+      com:     { title:'Diversifique su base de clientes', body:'Su cámara organiza ruedas de negocios y espacios de conexión comercial pensados para reducir la dependencia de pocos clientes. Pregunte por el calendario de ruedas de negocios y misiones comerciales.', tag:'Servicio: ruedas de negocios — cámara de comercio' },
+      ops:     { title:'Ordene sus procesos con acompañamiento técnico', body:'Las cámaras y el SENA ofrecen asesoría técnica y formación en procesos productivos. Empiece por documentar lo esencial: cómo se hace cada cosa, quién la hace y cuánto tarda.', tag:'Servicio: asesoría técnica — cámara de comercio / SENA' },
+      talento: { title:'Formalice la afiliación de su equipo', body:'Su cámara puede orientarlo sobre cómo afiliar a su equipo a seguridad social de forma progresiva, según su capacidad de pago actual.', tag:'Servicio: orientación en afiliación — cámara de comercio' },
+      digital: { title:'Adopte herramientas digitales básicas', body:'Pregunte por los programas de transformación digital para MiPymes de su cámara para dar el salto de vender solo por WhatsApp a gestionar el negocio con una herramienta digital.', tag:'Servicio: transformación digital — cámara de comercio' }
+    },
+    C: {
+      legal:   { title:'Cierre las brechas de cumplimiento que quedan', body:'Antes de crecer, resuelva lo pendiente con su cámara — renovaciones, permisos o aportes. Es más barato cerrarlo ahora que cuando la operación sea más grande.', tag:'Servicio: cumplimiento — cámara de comercio' },
+      fin:     { title:'Formalice su costeo antes de escalar', body:'Busque asesoría financiera en su cámara, o considere una estructura societaria como la SAS, que facilita llevar cuentas claras y acceder a financiamiento formal.', tag:'Servicio: asesoría financiera — cámara de comercio' },
+      com:     { title:'Explore nuevos mercados con acompañamiento', body:'Su cámara organiza ruedas de negocios y misiones comerciales; si su negocio tiene potencial exportador, puede conectarlo con ProColombia.', tag:'Servicio: ruedas de negocios — cámara de comercio / ProColombia' },
+      ops:     { title:'Aproveche la capacidad instalada antes de invertir en más', body:'Pida una asesoría de productividad en su cámara o el SENA para identificar dónde está la holgura, antes de comprar más equipo o contratar más personal.', tag:'Servicio: asesoría de productividad — cámara de comercio / SENA' },
+      talento: { title:'Estructure roles y delegue', body:'Busque formación en gestión de equipos y delegación en su cámara — crecer sin delegar termina saturando al dueño, no a la operación.', tag:'Servicio: formación empresarial — cámara de comercio' },
+      digital: { title:'Invierta en adopción digital para escalar', body:'La brecha digital encarece la entrada a nuevos mercados. Pregunte por los programas de transformación digital de su cámara antes de invertir en expansión comercial.', tag:'Servicio: transformación digital — cámara de comercio' }
+    }
+  };
+
   var PRIORITY = ['legal','fin','com','ops','talento','digital'];
 
   function pickConstraint(){
@@ -805,13 +842,18 @@
     var callout = document.getElementById('res-callout');
     callout.style.background = 'var(--' + meta.color + '-soft)';
     callout.style.borderColor = 'var(--' + meta.color + ')';
-    document.querySelector('.callout-kicker').style.color = 'var(--' + meta.color + ')';
+    document.getElementById('res-callout').querySelector('.callout-kicker').style.color = 'var(--' + meta.color + ')';
 
+    var step = (NEXT_STEP[state.route] && NEXT_STEP[state.route][key]) || NEXT_STEP.B[key];
+    document.getElementById('res-action-title').textContent = step.title;
+    var actionText = step.body;
     if(state.route === 'A'){
       var readiness = state.modulo.reduce(function(a,b){ return a + b; }, 0) / (state.modulo.length * 3);
       var readinessLabel = readiness >= 0.75 ? 'Alta' : (readiness >= 0.45 ? 'Media' : 'Baja');
-      document.getElementById('res-callout-text').textContent += ' Disposición para formalizarse, según sus respuestas: ' + readinessLabel + '.';
+      actionText += ' Disposición para formalizarse, según sus respuestas: ' + readinessLabel + '.';
     }
+    document.getElementById('res-action-text').textContent = actionText;
+    document.getElementById('res-action-tag').textContent = step.tag;
   }
 
   restart();
